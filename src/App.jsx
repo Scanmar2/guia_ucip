@@ -103,6 +103,7 @@ export default function App() {
   const [search, setSearch] = useState("");
   const [openId, setOpenId] = useState(null);
   const [letterFilter, setLetterFilter] = useState(null);
+  const [showAbbrev, setShowAbbrev] = useState(false);
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -269,6 +270,80 @@ export default function App() {
             No se encontraron fármacos
           </div>
         )}
+
+        {/* Abbreviations button */}
+        <div
+          onClick={() => setShowAbbrev(!showAbbrev)}
+          style={{
+            marginTop: 24,
+            background: "#131c2b",
+            borderRadius: 14,
+            border: showAbbrev ? "1px solid rgba(100,180,255,0.25)" : "1px solid rgba(255,255,255,0.05)",
+            cursor: "pointer",
+            overflow: "hidden",
+            transition: "all 0.3s ease"
+          }}
+        >
+          <div style={{
+            padding: "16px 20px",
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            userSelect: "none"
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{
+                width: 36, height: 36, borderRadius: 10,
+                background: "linear-gradient(135deg,#e94560,#c23152)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 16, flexShrink: 0,
+                boxShadow: "0 2px 8px rgba(233,69,96,0.3)"
+              }}>📖</div>
+              <span style={{
+                color: "#e8f0fe", fontSize: 15, fontWeight: 600, letterSpacing: "0.02em"
+              }}>Abreviaturas</span>
+            </div>
+            <div style={{
+              color: "rgba(255,255,255,0.4)", fontSize: 18,
+              transform: showAbbrev ? "rotate(180deg)" : "rotate(0deg)",
+              transition: "transform 0.3s ease"
+            }}>▾</div>
+          </div>
+
+          {showAbbrev && (
+            <div onClick={e => e.stopPropagation()} style={{
+              padding: "0 20px 20px",
+              display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8
+            }}>
+              {[
+                ["API", "Agua para inyección"],
+                ["G5%", "Glucosa 5%"],
+                ["IM", "Administración vía intramuscular"],
+                ["PL", "Proteger de la luz"],
+                ["SC", "Administración vía subcutánea"],
+                ["SF", "Salino fisiológico"],
+                ["TA", "Temperatura ambiente"],
+                ["VF", "Volumen final"],
+                ["PC", "Perfusión continua"],
+                ["RH", "Restricción hídrica"],
+                ["vc", "Vía central"],
+                ["vp", "Vía periférica"],
+              ].map(([abbr, meaning]) => (
+                <div key={abbr} style={{
+                  background: "rgba(255,255,255,0.03)",
+                  borderRadius: 10,
+                  padding: "10px 12px",
+                  border: "1px solid rgba(255,255,255,0.04)"
+                }}>
+                  <span style={{
+                    color: "#64b5f6", fontWeight: 700, fontSize: 13
+                  }}>{abbr}</span>
+                  <span style={{
+                    color: "rgba(255,255,255,0.6)", fontSize: 12, marginLeft: 8
+                  }}>{meaning}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
