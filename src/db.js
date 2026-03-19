@@ -63,4 +63,35 @@ export async function getAvailableLetters() {
   return letters.sort();
 }
 
+// ── CRUD (admin only) ────────────────────────────────────────────────────────
+
+export async function addDrug(drug) {
+  return db.drugs.add(drug);
+}
+
+export async function updateDrug(id, changes) {
+  return db.drugs.update(id, changes);
+}
+
+export async function deleteDrug(id) {
+  return db.drugs.delete(id);
+}
+
+/**
+ * Export the full drugs table as a downloadable JSON file.
+ * Use this to update public/drugs.json and redeploy.
+ */
+export async function exportDrugsJSON() {
+  const all = await db.drugs.toArray();
+  // Strip internal Dexie id before exporting
+  const clean = all.map(({ id, ...rest }) => rest);
+  const blob = new Blob([JSON.stringify(clean, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'drugs.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export default db;

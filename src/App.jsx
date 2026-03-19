@@ -1,5 +1,6 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { initDatabase, getDrugs, getAvailableLetters } from "./db";
+import AdminPanel from "./AdminPanel";
 
 
 const LABELS = {
@@ -104,6 +105,9 @@ export default function App() {
   const [showAbbrev, setShowAbbrev] = useState(false);
   const [filtered, setFiltered] = useState([]);
   const [letters, setLetters] = useState([]);
+  const [showAdmin, setShowAdmin] = useState(false);
+  const [titleClicks, setTitleClicks] = useState(0);
+  const titleClickTimer = useRef(null);
   const inputRef = useRef(null);
 
   // Initialise DB once on mount (seeds from JSON if needed)
@@ -121,6 +125,28 @@ export default function App() {
     getDrugs(search, letterFilter || "").then(setFiltered);
   }, [search, letterFilter, loading]);
 
+  // Refresh list and letter bar after admin changes
+  const handleDataChanged = useCallback(async () => {
+    const [ls, data] = await Promise.all([getAvailableLetters(), getDrugs(search, letterFilter || "")]);
+    setLetters(ls);
+    setFiltered(data);
+    setTotalDrugs((await getDrugs()).length);
+  }, [search, letterFilter]);
+
+  // Secret trigger: click the title 5 times within 3 s
+  function handleTitleClick() {
+    setTitleClicks(n => {
+      const next = n + 1;
+      clearTimeout(titleClickTimer.current);
+      if (next >= 5) {
+        setShowAdmin(true);
+        return 0;
+      }
+      titleClickTimer.current = setTimeout(() => setTitleClicks(0), 3000);
+      return next;
+    });
+  }
+
   if (loading) return (
     <div style={{
       minHeight: "100vh",
@@ -137,6 +163,12 @@ export default function App() {
       background: "linear-gradient(180deg,#0a0e17 0%,#0d1520 40%,#111827 100%)",
       fontFamily: "'Segoe UI',system-ui,-apple-system,sans-serif"
     }}>
+      {showAdmin && (
+        <AdminPanel
+          onClose={() => setShowAdmin(false)}
+          onDataChanged={handleDataChanged}
+        />
+      )}
       {/* Header */}
       <div style={{
         background: "linear-gradient(135deg,#0d1b2a 0%,#1b2838 100%)",
@@ -147,12 +179,15 @@ export default function App() {
       }}>
         <div style={{ maxWidth: 700, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 16 }}>
-            <h1 style={{
-              margin: 0, fontSize: 20, fontWeight: 700,
-              background: "linear-gradient(135deg,#64b5f6,#42a5f5,#90caf9)",
-              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-              letterSpacing: "0.02em"
-            }}>Guía IV — UCIP</h1>
+            <h1
+              onClick={handleTitleClick}
+              style={{
+                margin: 0, fontSize: 20, fontWeight: 700,
+                background: "linear-gradient(135deg,#64b5f6,#42a5f5,#90caf9)",
+                WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+                letterSpacing: "0.02em", cursor: "default", userSelect: "none"
+              }}
+            >Guía IV — UCIP</h1>
             <p style={{
               margin: "4px 0 0", fontSize: 11, color: "rgba(255,255,255,0.35)",
               letterSpacing: "0.05em", textTransform: "uppercase"
