@@ -1,7 +1,6 @@
-import { useState, useMemo, useRef, useEffect } from "react";
-
-
-// Data loaded dynamically
+import { useState, useRef, useEffect, useCallback } from "react";
+import { initDatabase, getDrugs, getAvailableLetters } from "./db";
+import AdminPanel from "./AdminPanel";
 
 
 const LABELS = {
@@ -98,48 +97,55 @@ function DrugCard({ drug, isOpen, onToggle }) {
 }
 
 export default function App() {
-  const [drugs, setDrugs] = useState([]);
+  const [totalDrugs, setTotalDrugs] = useState(0);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [openId, setOpenId] = useState(null);
   const [letterFilter, setLetterFilter] = useState(null);
   const [showAbbrev, setShowAbbrev] = useState(false);
+  const [filtered, setFiltered] = useState([]);
+  const [letters, setLetters] = useState([]);
+  const [showAdmin, setShowAdmin] = useState(false);
+  const [titleClicks, setTitleClicks] = useState(0);
+  const titleClickTimer = useRef(null);
   const inputRef = useRef(null);
 
+  // Initialise DB once on mount (seeds from JSON if needed)
   useEffect(() => {
-    fetch(import.meta.env.BASE_URL + "drugs.json")
-      .then(r => r.json())
-      .then(data => { setDrugs(data); setLoading(false); })
+    initDatabase()
+      .then(() => getAvailableLetters())
+      .then(ls => { setLetters(ls); return getDrugs(); })
+      .then(data => { setFiltered(data); setTotalDrugs(data.length); setLoading(false); })
       .catch(err => { console.error(err); setLoading(false); });
   }, []);
 
-  const filtered = useMemo(() => {
-    let list = drugs;
-    if (letterFilter) {
-      list = list.filter(d => {
-        const first = d.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "")[0].toUpperCase();
-        return first === letterFilter;
-      });
-    }
-    if (search.trim()) {
-      const q = search.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      list = list.filter(d => {
-        const name = d.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        const pres = d.presentation.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        return name.includes(q) || pres.includes(q);
-      });
-    }
-    return list;
-  }, [search, letterFilter, drugs]);
+  // Re-query DB whenever search or letterFilter changes
+  useEffect(() => {
+    if (loading) return;
+    getDrugs(search, letterFilter || "").then(setFiltered);
+  }, [search, letterFilter, loading]);
 
-  const letters = useMemo(() => {
-    const s = new Set();
-    drugs.forEach(d => {
-      const c = d.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "")[0].toUpperCase();
-      s.add(c);
+  // Refresh list and letter bar after admin changes
+  const handleDataChanged = useCallback(async () => {
+    const [ls, data] = await Promise.all([getAvailableLetters(), getDrugs(search, letterFilter || "")]);
+    setLetters(ls);
+    setFiltered(data);
+    setTotalDrugs((await getDrugs()).length);
+  }, [search, letterFilter]);
+
+  // Secret trigger: click the title 5 times within 3 s
+  function handleTitleClick() {
+    setTitleClicks(n => {
+      const next = n + 1;
+      clearTimeout(titleClickTimer.current);
+      if (next >= 5) {
+        setShowAdmin(true);
+        return 0;
+      }
+      titleClickTimer.current = setTimeout(() => setTitleClicks(0), 3000);
+      return next;
     });
-    return [...s].sort();
-  }, [drugs]);
+  }
 
   if (loading) return (
     <div style={{
@@ -157,6 +163,12 @@ export default function App() {
       background: "linear-gradient(180deg,#0a0e17 0%,#0d1520 40%,#111827 100%)",
       fontFamily: "'Segoe UI',system-ui,-apple-system,sans-serif"
     }}>
+      {showAdmin && (
+        <AdminPanel
+          onClose={() => setShowAdmin(false)}
+          onDataChanged={handleDataChanged}
+        />
+      )}
       {/* Header */}
       <div style={{
         background: "linear-gradient(135deg,#0d1b2a 0%,#1b2838 100%)",
@@ -167,16 +179,19 @@ export default function App() {
       }}>
         <div style={{ maxWidth: 700, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 16 }}>
-            <h1 style={{
-              margin: 0, fontSize: 20, fontWeight: 700,
-              background: "linear-gradient(135deg,#64b5f6,#42a5f5,#90caf9)",
-              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-              letterSpacing: "0.02em"
-            }}>Guía IV — UCIP</h1>
+            <h1
+              onClick={handleTitleClick}
+              style={{
+                margin: 0, fontSize: 20, fontWeight: 700,
+                background: "linear-gradient(135deg,#64b5f6,#42a5f5,#90caf9)",
+                WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+                letterSpacing: "0.02em", cursor: "default", userSelect: "none"
+              }}
+            >Guía IV — UCIP</h1>
             <p style={{
               margin: "4px 0 0", fontSize: 11, color: "rgba(255,255,255,0.35)",
               letterSpacing: "0.05em", textTransform: "uppercase"
-            }}>Administración parenteral · {drugs.length} fármacos</p>
+            }}>Administración parenteral · {totalDrugs} fármacos</p>
           </div>
 
           {/* Search */}
