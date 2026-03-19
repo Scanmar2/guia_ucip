@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup — Guía IV UCIP</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    min-height: 100vh;
+    background: linear-gradient(180deg,#0a0e17 0%,#0d1520 40%,#111827 100%);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: #e8f0fe;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(135deg,#0d1b2a,#1b2838);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding: 20px 20px 14px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    backdrop-filter: blur(20px);
+  }
+  .header h1 {
+    text-align: center;
+    font-size: 20px;
+    font-weight: 700;
+    background: linear-gradient(135deg,#64b5f6,#42a5f5,#90caf9);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 0.02em;
+    margin-bottom: 4px;
+  }
+  .header .subtitle {
+    text-align: center;
+    font-size: 11px;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .search-wrap { position: relative; }
+  .search-wrap input {
+    width: 100%;
+    padding: 11px 14px 11px 40px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    color: #e8f0fe;
+    font-size: 14px;
+    outline: none;
+    font-family: inherit;
+    transition: border-color 0.2s;
+  }
+  .search-wrap input:focus { border-color: rgba(100,180,255,0.3); }
+  .search-wrap input::placeholder { color: rgba(255,255,255,0.3); }
+  .search-icon {
+    position: absolute;
+    left: 13px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: rgba(255,255,255,0.3);
+    pointer-events: none;
+  }
+
+  /* ── Body ── */
+  .body { max-width: 700px; margin: 0 auto; padding: 20px 16px 80px; }
+
+  /* ── Letter section ── */
+  .letter-section { margin-bottom: 24px; }
+  .letter-heading {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(100,180,255,0.5);
+    margin-bottom: 10px;
+    padding: 0 2px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .letter-heading::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.05);
+  }
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 10px;
+    padding: 7px 12px 7px 7px;
+    cursor: pointer;
+    transition: background 0.18s, border-color 0.18s, transform 0.12s;
+    user-select: none;
+  }
+  .chip:hover {
+    background: rgba(100,180,255,0.12);
+    border-color: rgba(100,180,255,0.25);
+    transform: translateY(-1px);
+  }
+  .chip:active { transform: scale(0.97); }
+  .chip-avatar {
+    width: 28px; height: 28px;
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700;
+    color: rgba(255,255,255,0.92);
+    flex-shrink: 0;
+  }
+  .chip-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.82);
+    white-space: nowrap;
+  }
+
+  /* ── Modal overlay ── */
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(6px);
+    z-index: 200;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+  .sheet {
+    background: linear-gradient(160deg,#0d1b2a,#111827);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 22px 22px 0 0;
+    width: 100%;
+    max-width: 700px;
+    max-height: 88vh;
+    overflow-y: auto;
+    padding: 0 0 40px;
+    transform: translateY(40px);
+    transition: transform 0.28s cubic-bezier(.32,1.2,.5,1);
+  }
+  .overlay.open .sheet { transform: translateY(0); }
+
+  .sheet-handle {
+    width: 38px; height: 4px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 2px;
+    margin: 12px auto 0;
+  }
+  .sheet-header {
+    padding: 16px 20px 12px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    position: sticky;
+    top: 0;
+    background: #0d1b2a;
+    border-radius: 22px 22px 0 0;
+    z-index: 10;
+  }
+  .sheet-avatar {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: 700;
+    color: rgba(255,255,255,0.9);
+    flex-shrink: 0;
+  }
+  .sheet-title { font-size: 17px; font-weight: 700; color: #e8f0fe; }
+  .sheet-sub { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+  .close-btn {
+    margin-left: auto;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.07);
+    border: none;
+    color: rgba(255,255,255,0.5);
+    font-size: 14px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.2s;
+  }
+  .close-btn:hover { background: rgba(255,255,255,0.12); }
+
+  .sheet-body { padding: 16px 20px 0; display: flex; flex-direction: column; gap: 10px; }
+  .field {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 12px;
+    padding: 12px 14px;
+  }
+  .field-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(100,180,255,0.65);
+    margin-bottom: 6px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .field-value { font-size: 13.5px; color: rgba(255,255,255,0.82); line-height: 1.65; }
+
+  .copy-btn {
+    margin: 16px 20px 0;
+    width: calc(100% - 40px);
+    padding: 13px;
+    background: rgba(100,180,255,0.1);
+    border: 1px solid rgba(100,180,255,0.2);
+    border-radius: 12px;
+    color: #64b5f6;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.2s;
+  }
+  .copy-btn:hover { background: rgba(100,180,255,0.18); }
+
+  /* ── Counter ── */
+  .counter {
+    font-size: 12px;
+    color: rgba(255,255,255,0.3);
+    margin-bottom: 16px;
+    padding: 0 2px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="max-width:700px;margin:0 auto">
+    <h1>Guía IV — UCIP</h1>
+    <p class="subtitle">Administración parenteral · 24 fármacos</p>
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" placeholder="Buscar fármaco…" id="searchInput" oninput="doSearch(this.value)">
+    </div>
+  </div>
+</div>
+
+<div class="body" id="bodyContent"></div>
+
+<!-- Modal -->
+<div class="overlay" id="overlay" onclick="closeSheet(event)">
+  <div class="sheet" id="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header" id="sheetHeader"></div>
+    <div class="sheet-body" id="sheetBody"></div>
+    <button class="copy-btn" onclick="copyInfo()">Copiar información</button>
+  </div>
+</div>
+
+<script>
+const COLORS = [
+  ["#1e5799","#2989d8"],["#1a6b3a","#27a85a"],["#6b1a4e","#a8277e"],
+  ["#7a3a0d","#c75f1a"],["#1a4e6b","#278aa8"],["#4e1a6b","#7e27a8"],
+  ["#6b4e1a","#a88227"],["#1a6b6b","#27a8a8"]
+];
+const LABELS = {
+  presentation:"Presentación", concentration:"Concentración",
+  reconstitution:"Reconstitución / Dilución", stability:"Estabilidad",
+  admin_time:"Tiempo de Administración", observations:"Observaciones"
+};
+const ICONS = {
+  presentation:"💊",concentration:"⚗️",reconstitution:"🧪",
+  stability:"🕐",admin_time:"⏱️",observations:"📋"
+};
+const FIELDS = ["presentation","concentration","reconstitution","stability","admin_time","observations"];
+
+const DRUGS = [
+  {name:"Adenosina", presentation:"6 mg/2 ml amp", concentration:"3 mg/ml", admin_time:"Bolo IV rápido (1-2 s), seguido de SF 20 ml en bolo"},
+  {name:"Adrenalina", presentation:"1 mg/1 ml amp", concentration:"1 mg/ml (1:1000)", reconstitution:"Diluir en SF o G5% para perfusión", admin_time:"PC: 0.01–1 mcg/kg/min", stability:"24h TA, proteger de la luz"},
+  {name:"Amikacina", presentation:"250 mg/ml vial", reconstitution:"Diluir en SF 100 ml", admin_time:"30–60 min", stability:"24h TA"},
+  {name:"Amiodarona", presentation:"150 mg/3 ml amp", reconstitution:"Diluir en G5%, nunca SF", admin_time:"Bolo: 5 mg/kg en 20-60 min. PC: 10-20 mg/kg/día", observations:"Solo vía central. Proteger de la luz"},
+  {name:"Atropina", presentation:"1 mg/1 ml amp", admin_time:"Bolo IV directo", observations:"Mínimo 0.1 mg para evitar bradicardia paradójica"},
+  {name:"Bicarbonato 1M", presentation:"1 mEq/ml (1M)", admin_time:"Infusión lenta 30-60 min", observations:"No mezclar con calcio"},
+  {name:"Bumetanida", presentation:"0.5 mg/ml amp", admin_time:"Bolo IV en 1-2 min o PC", stability:"24h TA"},
+  {name:"Calcio gluconato 10%", presentation:"100 mg/ml (Ca gluconato)", reconstitution:"Diluir al menos 1:1 en G5% o SF", admin_time:"Bolo lento >10 min con monitorización", observations:"Nunca en vía con bicarbonato"},
+  {name:"Cefazolina", presentation:"1 g vial", reconstitution:"Reconstituir con 10 ml API, luego SF 50–100 ml", admin_time:"15–30 min"},
+  {name:"Clonazepam", presentation:"1 mg/1 ml amp", reconstitution:"Diluir en G5% o SF", admin_time:"Bolo lento: 0.5-1 mg en 2 min"},
+  {name:"Dexametasona", presentation:"4 mg/ml amp", admin_time:"Bolo IV directo o infusión en 15 min"},
+  {name:"Digoxina", presentation:"0.25 mg/ml amp", reconstitution:"Puede diluirse en G5% o SF (mínimo 4x volumen)", admin_time:"Digitalización: en 30 min. Mantenimiento: en 60 min", observations:"Monitorizar ECG"},
+  {name:"Dobutamina", presentation:"250 mg/20 ml amp", reconstitution:"Diluir en G5% o SF hasta 1 mg/ml", admin_time:"PC: 2–20 mcg/kg/min", stability:"24h TA, 48h refrigerado"},
+  {name:"Dopamina", presentation:"200 mg/10 ml amp", reconstitution:"Diluir en G5% (preferible) o SF", admin_time:"PC: 2–20 mcg/kg/min", observations:"Evitar extravasación. Preferable vía central"},
+  {name:"Fentanilo", presentation:"50 mcg/ml amp", reconstitution:"Puede usarse puro o diluido en SF/G5%", admin_time:"Bolo: 1-3 mcg/kg en 3-5 min. PC: 1-5 mcg/kg/h"},
+  {name:"Furosemida", presentation:"10 mg/ml amp", admin_time:"Bolo IV en 1-2 min (max 0.5 mg/kg/min)", observations:"Proteger de la luz"},
+  {name:"Gentamicina", presentation:"80 mg/2 ml amp", reconstitution:"Diluir en SF 50–100 ml", admin_time:"30–60 min"},
+  {name:"Hidrocortisona", presentation:"100 mg vial", reconstitution:"Reconstituir con 2 ml API; puede diluirse en SF", admin_time:"Bolo IV en 3-5 min"},
+  {name:"Labetalol", presentation:"5 mg/ml amp", reconstitution:"Diluir en SF o G5% a 1-2 mg/ml", admin_time:"PC: 1-4 mg/min. Bolo: 20-80 mg en 2 min"},
+  {name:"Midazolam", presentation:"5 mg/ml amp", reconstitution:"Diluir en SF o G5%", admin_time:"Bolo: 0.05-0.1 mg/kg en 2-3 min. PC: 0.05-0.2 mg/kg/h"},
+  {name:"Morfina", presentation:"10 mg/ml amp", reconstitution:"Diluir en SF o G5%", admin_time:"Bolo: 0.05-0.1 mg/kg en 5 min. PC: 0.01-0.05 mg/kg/h"},
+  {name:"Noradrenalina", presentation:"4 mg/4 ml amp (1 mg/ml)", reconstitution:"Diluir en G5% (preferible) o SF", admin_time:"PC: 0.01-1 mcg/kg/min", observations:"Solo vía central. Proteger de la luz"},
+  {name:"Propofol 1%", presentation:"10 mg/ml emulsión", admin_time:"Bolo: 1-2 mg/kg. PC: 1-4 mg/kg/h", stability:"6h tras apertura del vial", observations:"Asepsia estricta. Filtro 1.2 micras"},
+  {name:"Vancomicina", presentation:"500 mg vial", reconstitution:"Reconstituir con 10 ml API, luego SF o G5% a ≤5 mg/ml", admin_time:"Mínimo 60 min (10 mg/min max)", observations:"Infusión lenta para evitar Red Man Syndrome"},
+];
+
+function letterColor(name) {
+  const idx = Math.abs((name.charCodeAt(0) - 65) % COLORS.length);
+  return COLORS[idx];
+}
+
+function groupByLetter(list) {
+  const map = {};
+  list.forEach(d => {
+    const l = d.name[0].toUpperCase();
+    if (!map[l]) map[l] = [];
+    map[l].push(d);
+  });
+  return map;
+}
+
+function renderList(drugs) {
+  const body = document.getElementById('bodyContent');
+  const count = document.getElementById('counter');
+  const groups = groupByLetter(drugs);
+  const letters = Object.keys(groups).sort();
+
+  let html = `<div class="counter">${drugs.length} fármacos</div>`;
+  letters.forEach(l => {
+    html += `<div class="letter-section">
+      <div class="letter-heading">${l}</div>
+      <div class="chips">`;
+    groups[l].forEach((d, i) => {
+      const [c1, c2] = letterColor(d.name);
+      html += `<div class="chip" onclick='openSheet(${JSON.stringify(d).replace(/'/g,"&#39;")})'>
+        <div class="chip-avatar" style="background:linear-gradient(135deg,${c1},${c2});box-shadow:0 2px 6px ${c1}44">
+          ${d.name[0].toUpperCase()}
+        </div>
+        <span class="chip-name">${d.name}</span>
+      </div>`;
+    });
+    html += `</div></div>`;
+  });
+
+  body.innerHTML = html;
+}
+
+let currentDrug = null;
+
+function openSheet(drug) {
+  currentDrug = drug;
+  const [c1, c2] = letterColor(drug.name);
+  document.getElementById('sheetHeader').innerHTML = `
+    <div class="sheet-avatar" style="background:linear-gradient(135deg,${c1},${c2});box-shadow:0 4px 12px ${c1}55">
+      ${drug.name[0].toUpperCase()}
+    </div>
+    <div>
+      <div class="sheet-title">${drug.name}</div>
+      ${drug.presentation ? `<div class="sheet-sub">${drug.presentation}</div>` : ''}
+    </div>
+    <button class="close-btn" onclick="closeSheet()">✕</button>
+  `;
+  const filled = FIELDS.filter(f => drug[f]);
+  document.getElementById('sheetBody').innerHTML = filled.map(f => `
+    <div class="field">
+      <div class="field-label">${ICONS[f]} ${LABELS[f]}</div>
+      <div class="field-value">${drug[f]}</div>
+    </div>
+  `).join('');
+  document.getElementById('overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSheet(e) {
+  if (e && e.target !== document.getElementById('overlay')) return;
+  document.getElementById('overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function copyInfo() {
+  if (!currentDrug) return;
+  const lines = [currentDrug.name + '\n'];
+  FIELDS.forEach(f => { if (currentDrug[f]) lines.push(`${LABELS[f]}: ${currentDrug[f]}`); });
+  navigator.clipboard.writeText(lines.join('\n')).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = '✓ Copiado';
+    btn.style.color = '#4ade80';
+    setTimeout(() => { btn.textContent = 'Copiar información'; btn.style.color = '#64b5f6'; }, 2000);
+  });
+}
+
+function doSearch(q) {
+  const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const nq = norm(q.trim());
+  const result = nq ? DRUGS.filter(d => norm(d.name).includes(nq)) : DRUGS;
+  renderList(result);
+}
+
+// Initial render
+renderList(DRUGS);
+</script>
+</body>
+</html>
